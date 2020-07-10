@@ -1,11 +1,11 @@
+#ifndef __MEMORYACCESS__
+#define __MEMORYACCESS__
+
 #include"instruction.hpp"
 #include"memory.hpp"
 #include"register.hpp"
 #include"executor.hpp"
 #include"execute.hpp"
-
-#ifndef __MEMORYACCESS__
-#define __MEMORYACCESS__
 
 class MemoryAccess
 {

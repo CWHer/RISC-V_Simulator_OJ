@@ -1,11 +1,11 @@
+#ifndef __WRITEBACK__
+#define __WRITEBACK__
+
 #include"instruction.hpp"
 #include"memory.hpp"
 #include"register.hpp"
 #include"executor.hpp"
 #include"memoryaccess.hpp"
-
-#ifndef __WRITEBACK__
-#define __WRITEBACK__
 
 class WriteBack
 {

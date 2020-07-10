@@ -1,5 +1,7 @@
 #ifndef __RISC_V__
 #define __RISC_V__
+
+enum States{ST,WT,WNT,SNT}; //S:strongly    W:weakly    N:not   T:take
 enum Basictypes{R,I,S,B,U,J};
 enum Instructiontypes
 {

@@ -1,9 +1,10 @@
+#ifndef __REGISTER__
+#define __REGISTER__
+
 #include<cstring>
 // debug
 #include<cstdio>
 
-#ifndef __REGISTER__
-#define __REGISTER__
 class Register
 {
     private:

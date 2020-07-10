@@ -1,10 +1,11 @@
+#ifndef __INSTRUCTIONDECODE__
+#define __INSTRUCTIONDECODE__
+
 #include"instruction.hpp"
 #include"memory.hpp"
 #include"register.hpp"
+#include"predictor.hpp"
 #include"instructionfetch.hpp"
-
-#ifndef __INSTRUCTIONDECODE__
-#define __INSTRUCTIONDECODE__
 
 class InstructionDecode
 {
@@ -13,10 +14,11 @@ class InstructionDecode
         Instruction opt;
         Register *reg;
         Memory *mem;
+        Predictor *prd;
         bool isend;
         int wait_clk;
     public:
-        InstructionDecode():wait_clk(0) {}
+        InstructionDecode(Predictor *_prd):wait_clk(0),prd(_prd) {}
         void init(InstructionFetch &IF)
         {
             if (isLock()) return;
@@ -45,7 +47,7 @@ class InstructionDecode
                 if (wait_clk) return;
             }
             if (isend) return;
-            opt.decode();
+            opt.decode(prd);
         }
         void putwclk(int clk)  //put wait clk
         {

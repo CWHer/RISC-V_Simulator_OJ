@@ -1,11 +1,11 @@
+#ifndef __EXECUTOR__
+#define __EXECUTOR__
+
 #include"RISC-V.h"
 #include"instruction.hpp"
 #include"register.hpp"
 #include"memory.hpp"
 
-
-#ifndef __EXECUTOR__
-#define __EXECUTOR__
 class Executor
 {
     friend class Execute;
@@ -33,7 +33,7 @@ class Executor
             temp_result=temp_resultpc=addr=0;
         }
         void run(Register *reg,forward &fwd)    //check forwarding in EXE, similar to run
-        {                               //do not want to modify run()...orz
+        {                              
             unsigned shamt=opt.rs2,imm=opt.imm;     //check replace run in ver2.2
             unsigned rs1=opt.rs1,rs2=opt.rs2;
             temp_result=temp_resultpc=addr=0;

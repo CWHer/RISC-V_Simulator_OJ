@@ -1,6 +1,7 @@
 #include"RISC-V.h"
 #include"register.hpp"
 #include"memory.hpp"
+#include"predictor.hpp"
 #include"instructionfetch.hpp"
 #include"instructiondecode.hpp"
 #include"execute.hpp"
@@ -12,34 +13,36 @@ class RISC_V        //mode  0(default):serial   1:parallel
     private:
         Register reg;
         Memory *mem;
+        Predictor prd;
         InstructionFetch IF;
         InstructionDecode ID;
         Execute EXE;
         MemoryAccess MEM;
         WriteBack WB;
         int mode;
-        void putback()     //reset pipeline to last clk
-        {
-            reg.prevpc();
-            ID.putback(IF);
-            EXE.putback(ID);
-            EXE.reset();
-            ID.setJump();
-        }
         void run_parallel()
         {
-            bool MEM2WB;     //whether MEM->WB 
+            bool MEM2WB,isPB;     //whether MEM->WB 
             mem->init_read();
             IF.init(mem,&reg);
             do {
-                ++cnt;
+                ++clkcnt,isPB=0;
                 WB.run();
                 MEM.run();
                 MEM2WB=MEM.gettype()!=EMPTY;
                 WB.init(MEM);
                 if (!MEM.isLock()&&MEM.gettype()!=EMPTY) MEM.forwarding(EXE);
                 EXE.run();
-                if (!EXE.check()) putback();
+                if (!EXE.check(wcnt))    //put pipeline to last clk
+                {
+                    reg.prevpc();
+                    // ID.putback(IF);
+                    EXE.putback(ID);
+                    EXE.reset();
+                    ID.setJump();
+                    isPB=1;
+                }
+                EXE.update(&prd);
                 MEM.init(EXE);
                 if (EXE.gettype()!=EMPTY||EXE.isEnd())  
                 {
@@ -56,16 +59,11 @@ class RISC_V        //mode  0(default):serial   1:parallel
                     }
                     else MEM.putwclk(3);
                 }
-                ID.run();
-                if (ID.willJump())
+                if (!isPB) ID.run();
+                if (ID.willJump()||isSL(ID.gettype()))
                 {
-                    IF.reset();
-                    IF.putwclk(3);  //1+1+1 without SL
-                }
-                if (isSL(ID.gettype()))
-                {
-                    IF.reset();
-                    IF.putwclk(3);  //3+1 / 1 can forwarding
+                    IF.reset();     //1+1+1 without SL  jump
+                    IF.putwclk(3);  //3+1 / 1 can forwarding    s&L
                 }
                 EXE.init(ID);
                 IF.run();
@@ -77,22 +75,22 @@ class RISC_V        //mode  0(default):serial   1:parallel
             mem->init_read();
             IF.init(mem,&reg);
             do {
-                IF.run(),++cnt;
+                IF.run(),++clkcnt;
                 ID.init(IF);
-                ID.run(),++cnt;
+                ID.run(),++clkcnt;
                 EXE.init(ID);
                 EXE.run();
-                if (isSL(EXE.gettype())) cnt+=3;
+                if (isSL(EXE.gettype())) clkcnt+=3;
                 MEM.init(EXE);
-                MEM.run(),++cnt;
+                MEM.run(),++clkcnt;
                 WB.init(MEM);
-                WB.run(),++cnt;
+                WB.run(),++clkcnt;
             } while (!WB.isEnd());
         }
         //debug
-        int cnt;
+        int clkcnt,wcnt;
     public:
-        RISC_V(Memory *_mem,int _mode=0):cnt(0),mem(_mem),mode(_mode) {}
+        RISC_V(Memory *_mem,int _mode=0):clkcnt(0),wcnt(0),mem(_mem),mode(_mode),ID(&prd) {}
         void run()
         {
             if (mode==0)
@@ -107,6 +105,11 @@ class RISC_V        //mode  0(default):serial   1:parallel
         //debug
         int clktimes()
         {
-            return cnt;
+            return clkcnt;
+        }
+        void prdrate()
+        {
+            int rcnt=prd.tot-wcnt;
+            printf("%d/%d %.2lf%\n",rcnt,prd.tot,rcnt*100.0/prd.tot);
         }
 };

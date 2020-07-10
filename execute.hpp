@@ -1,11 +1,12 @@
+#ifndef __EXECUTE__
+#define __EXECUTE__
+
 #include"instruction.hpp"
 #include"memory.hpp"
 #include"register.hpp"
 #include"executor.hpp"
+#include"predictor.hpp"
 #include"instructiondecode.hpp"
-
-#ifndef __EXECUTE__
-#define __EXECUTE__
 
 class Execute
 {
@@ -66,10 +67,24 @@ class Execute
         {
             return wait_clk>0;
         }
-        bool check()
+        bool check(int &wcnt)
         {
-            if (!exe.opt.willJump()&&exe.temp_resultpc!=0) return 0;
+            if ((!exe.opt.willJump())^(exe.temp_resultpc==0)) 
+            {
+                ++wcnt;
+                if (exe.temp_resultpc!=0) return 0;
+            }
+            // if (gettype()==JAL||gettype()==JALR) return 1;
+            // if (!isJump(gettype())) return 1;
+            // printf("%d\n",exe.temp_resultpc!=0);    //jump 1 njump 0
             return 1;
+        }
+        void update(Predictor *prd)
+        {
+            Instructiontypes type=gettype();
+            if (!isJump(type)) return;
+            if (type==JAL||type==JALR) return;
+            prd->update(exe.temp_resultpc!=0?-1:1);
         }
 };
 

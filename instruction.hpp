@@ -1,10 +1,12 @@
+#ifndef __INSTRUCTION__
+#define __INSTRUCTION__
+
 #include<cstdio>
 #include"RISC-V.h"
 #include"memory.hpp"
 #include"register.hpp"
+#include"predictor.hpp"
 
-#ifndef __INSTRUCTION__
-#define __INSTRUCTION__
 class Instruction
 {
     friend class Executor;
@@ -39,7 +41,7 @@ class Instruction
             reg->nextpc();
             return seq==0x0ff00513; 
         }
-        void decode()
+        void decode(Predictor *prd)
         {
             unsigned opcode=seq&127;
             unsigned func3=seq>>12&7;
@@ -61,9 +63,10 @@ class Instruction
                         case 6:type=BLTU;break;
                         case 7:type=BGEU;break;
                     }
-                    // willjump=prediction
+                    willjump=prd->willJump();
                     // willjump=1;
-                    willjump|=0;
+                    // willjump=0;
+                    // printf("%d ",willjump);
                     basictype=B;
                     break;
                 }

@@ -1,3 +1,0 @@
-/mnt/d/cwher/maketest/build/CMakeFiles/rebuild_cache.dir
-/mnt/d/cwher/maketest/build/CMakeFiles/code.dir
-/mnt/d/cwher/maketest/build/CMakeFiles/edit_cache.dir
