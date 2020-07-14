@@ -34,10 +34,12 @@ class Instruction
             basictype=R;
             willjump=0;
         }
-        bool fetch(Memory *mem,Register *reg)
+        bool fetch(Memory *mem,Register *reg,forward fwd)
         {
             init();
-            seq=mem->load(reg->getpc(),4);
+            unsigned pc=reg->getpc()+fwd.temp_resultpc;
+            if (fwd.type==JALR) pc=fwd.temp_resultpc;
+            seq=mem->load(pc,4);
             reg->nextpc();
             return seq==0x0ff00513; 
         }
@@ -63,10 +65,7 @@ class Instruction
                         case 6:type=BLTU;break;
                         case 7:type=BGEU;break;
                     }
-                    willjump=prd->willJump();
-                    // willjump=1;
-                    // willjump=0;
-                    // printf("%d ",willjump);
+                    willjump=prd->willJump(type);
                     basictype=B;
                     break;
                 }

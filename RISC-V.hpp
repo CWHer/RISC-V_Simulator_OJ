@@ -22,52 +22,48 @@ class RISC_V        //mode  0(default):serial   1:parallel
         int mode;
         void run_parallel()
         {
-            bool MEM2WB,isPB;     //whether MEM->WB 
+            bool MEM2WB,isPB,isStall;     //MEM->WB? putback? curstall?
             mem->init_read();
             IF.init(mem,&reg);
             do {
-                ++clkcnt,isPB=0;
+                ++clkcnt,isPB=isStall=0;
                 WB.run();
                 MEM.run();
                 MEM2WB=MEM.gettype()!=EMPTY;
                 WB.init(MEM);
-                if (!MEM.isLock()&&MEM.gettype()!=EMPTY) MEM.forwarding(EXE);
+                if (!MEM.isLock()&&MEM.gettype()!=EMPTY) MEM.forwarding(EXE);//MEM->EXE
                 EXE.run();
-                if (!EXE.check(wcnt))    //put pipeline to last clk
-                {
+                if (!EXE.check(wcnt))    //put back pipeline to last clk
+                {                       //jump&incorrect pred
                     reg.prevpc();
-                    // ID.putback(IF);
                     EXE.putback(ID);
                     EXE.reset();
                     ID.setJump();
                     isPB=1;
                 }
-                EXE.update(&prd);
+                if (EXE.willJump()) EXE.forwarding(IF);//EXE->IF
+                EXE.update(&prd);   //update predictor
                 MEM.init(EXE);
                 if (EXE.gettype()!=EMPTY||EXE.isEnd())  
                 {
                     if (!isSL(EXE.gettype()))   //skip MEM if without SL
                     {
                         if (MEM2WB)     //WAW
-                        {
-                            EXE.putwclk(1);
-                            ID.putwclk(2);
-                            IF.putwclk(2);
-                        }     
-                        else WB.init(MEM);  
+                            isStall=1;  
+                        else 
+                            WB.init(MEM);  
                         MEM.reset();    
                     }
                     else MEM.putwclk(3);
                 }
-                if (!isPB) ID.run();
-                if (ID.willJump()||isSL(ID.gettype()))
-                {
-                    IF.reset();     //1+1+1 without SL  jump
-                    IF.putwclk(3);  //3+1 / 1 can forwarding    s&L
-                }
-                EXE.init(ID);
-                IF.run();
-                ID.init(IF);
+                if (!isPB&&!isStall) ID.run();
+                if (ID.willJump())//b-type:1+1+1/EXE->IF-1
+                    IF.reset(),IF.putwclk(2);
+                if (isSL(ID.gettype())) //s&L:3+1/MEM->EXE-1 
+                    IF.reset(),IF.putwclk(3);  
+                if (!isStall) EXE.init(ID);
+                if (!isStall) IF.run();
+                if (!isStall) ID.init(IF);
             } while (!WB.isEnd());
         }
         void run_serial()
@@ -88,9 +84,10 @@ class RISC_V        //mode  0(default):serial   1:parallel
             } while (!WB.isEnd());
         }
         //debug
-        int clkcnt,wcnt;
+        int clkcnt,wcnt;    //clockcnt wrongcnt
     public:
-        RISC_V(Memory *_mem,int _mode=0):clkcnt(0),wcnt(0),mem(_mem),mode(_mode),ID(&prd) {}
+        RISC_V(Memory *_mem,int _mode=0)
+            :clkcnt(0),wcnt(0),mem(_mem),mode(_mode),ID(&prd),WB(_mode) {}
         void run()
         {
             if (mode==0)

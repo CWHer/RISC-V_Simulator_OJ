@@ -14,7 +14,9 @@ class WriteBack
         Memory *mem;
         Executor exe;
         bool isend;
+        bool isParallel;
     public:
+        WriteBack(bool _isParallel):isParallel(_isParallel) {}
         void init(MemoryAccess &MEM)
         {
             reset();
@@ -32,7 +34,7 @@ class WriteBack
         void run()
         {
             if (isend) return;
-            exe.write_back(reg);
+            exe.write_back(reg,isParallel);
         }
         bool isEnd()
         {

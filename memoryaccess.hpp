@@ -32,6 +32,7 @@ class MemoryAccess
         {
             Instruction opt;
             exe.init(opt);
+            fwd.init();
         }
         void run()
         {
@@ -41,8 +42,6 @@ class MemoryAccess
                 --wait_clk;
                 if (wait_clk) return;
             }
-            // if (isSL(exe.gettype())) 
-            // putwclk(2);    //memaccess needs 3 clk
             exe.memory_access(mem,reg);
             if (gettype()!=SB&&gettype()!=SH&&gettype()!=SW) fwd=exe.genfwd();
         }

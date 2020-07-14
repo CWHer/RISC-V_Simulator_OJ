@@ -114,7 +114,7 @@ class Executor
                 case SW:mem->store(addr,reg->getdata(opt.rs2),4);break;
             }
         } 
-        void write_back(Register *reg)
+        void write_back(Register *reg,bool isParallel)
         {
             unsigned rd=opt.rd;
             switch (opt.type)
@@ -130,7 +130,7 @@ class Executor
                 case JALR:  //I type
                 {
                     reg->setdata(rd,temp_result);
-                    reg->getpc()=temp_resultpc;
+                    reg->getpc()=temp_resultpc+(4*isParallel);   //nextpc in simultaneous IF(forwarding)
                     break;
                 }
                 //branch    //B type
@@ -181,7 +181,7 @@ class Executor
         }
         forward genfwd()
         {
-            return forward(gettype(),opt.rd,temp_result);
+            return forward(gettype(),opt.rd,temp_result,temp_resultpc);
         }
 };
 #endif

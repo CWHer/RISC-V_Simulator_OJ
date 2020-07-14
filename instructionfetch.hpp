@@ -8,12 +8,14 @@
 class InstructionFetch
 {
     friend class InstructionDecode;
+    friend class Execute;
     private:
         Instruction opt;
         Register *reg;
         Memory *mem;
         bool isend;
         int wait_clk;
+        forward fwd;
     public:
         InstructionFetch():isend(0),wait_clk(0) {}
         void init(Memory *_mem,Register *_reg)
@@ -28,12 +30,14 @@ class InstructionFetch
                 --wait_clk;
                 if (wait_clk) return;
             }
-            isend=opt.fetch(mem,reg);
+            isend=opt.fetch(mem,reg,fwd);
+            fwd.init();
             if (isend) reset();
         }
         void reset()    //reset to EMPTY
         {
             opt.init();
+            fwd.init();
         }
         // void putback()  //put one instruction back when it meets sth like JAL
         // {

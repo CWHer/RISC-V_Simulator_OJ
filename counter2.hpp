@@ -9,6 +9,7 @@ class Counter2
         States state;
     public:
         Counter2():state(WT) {}
+        // Counter2():state(SNT) {}
         void update(int dir)
         {
             if (state==SNT&&dir==1) return;

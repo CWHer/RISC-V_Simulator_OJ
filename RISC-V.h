@@ -16,18 +16,21 @@ enum Instructiontypes
 struct forward
 {
     Instructiontypes type;
-    unsigned rd,temp_result;
+    unsigned rd,temp_result,temp_resultpc;
     forward() 
     {
         type=EMPTY;
-        rd=temp_result=0;
+        rd=temp_result=temp_resultpc=0;
     }
-    forward(Instructiontypes _type,unsigned _rd,unsigned _temp_result)
-        :type(_type),rd(_rd),temp_result(_temp_result) {}
+    forward(Instructiontypes _type,unsigned _rd,
+            unsigned _temp_result,unsigned _temp_resultpc)
+        :type(_type),rd(_rd),
+            temp_result(_temp_result),
+            temp_resultpc(_temp_resultpc) {}
     void init()
     {
         type=EMPTY;
-        rd=temp_result=0;
+        rd=temp_result=temp_resultpc=0;
     }
 };
 const char *str[]=
