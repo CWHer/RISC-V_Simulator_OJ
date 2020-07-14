@@ -30,14 +30,14 @@ class Memory
         Memory()
         {
             cnt=0;
-            freopen("in","r",stdin);
+//            freopen("in","r",stdin);
             std::memset(data,0,sizeof(data));
             std::memset(seq,0,sizeof(seq));
         }
         Memory(const char *fname)
         {
             cnt=0;
-            freopen(fname,"r",stdin);
+//            freopen(fname,"r",stdin);
             std::memset(data,0,sizeof(data));
             std::memset(seq,0,sizeof(seq));
         }
