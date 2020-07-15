@@ -1,8 +1,8 @@
 #ifndef __PREDICTOR__
 #define __PREDICTOR__
 
+#include"RISC-V.h"
 #include"counter2.hpp"
-#include<cstdio>
 
 class Predictor
 {

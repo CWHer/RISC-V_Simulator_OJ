@@ -1,7 +1,6 @@
 #ifndef __INSTRUCTION__
 #define __INSTRUCTION__
 
-#include<cstdio>
 #include"RISC-V.h"
 #include"memory.hpp"
 #include"register.hpp"
@@ -26,7 +25,7 @@ class Instruction
             basictype=R;
             willjump=0;
         }
-        void init()
+        void reset()
         {
             imm=seq=0;
             rs1=rs2=rd=0;
@@ -36,9 +35,8 @@ class Instruction
         }
         bool fetch(Memory *mem,Register *reg,forward fwd)
         {
-            init();
+            reset();
             unsigned pc=reg->getpc()+fwd.temp_resultpc;
-            if (fwd.type==JALR) pc=fwd.temp_resultpc;
             seq=mem->load(pc,4);
             reg->nextpc();
             return seq==0x0ff00513; 
@@ -129,13 +127,13 @@ class Instruction
             rs1=seq>>15&31;
             rs2=seq>>20&31;
             rd=seq>>7&31;
-            switch (basictype) 
+            switch (basictype)  //calc imm
             {
-                case I:imm=seq>>20;break;
-                case S:imm=(seq>>7&31)+(seq>>25<<5);break;
-                case B:imm=(seq>>8<<1&31)+(seq>>25<<5&2047)+((seq>>7&1)<<11)+(seq>>31<<12);break;
+                case I:imm=sext(seq>>20,11);break;
+                case S:imm=sext((seq>>7&31)+(seq>>25<<5),11);break;
+                case B:imm=sext((seq>>8<<1&31)+(seq>>25<<5&2047)+((seq>>7&1)<<11)+(seq>>31<<12),12);break;
                 case U:imm=seq>>12<<12;break;
-                case J:imm=(seq>>21<<1&2047)+((seq>>20&1)<<11)+((seq>>12&255)<<12)+(seq>>31<<20);break;
+                case J:imm=sext((seq>>21<<1&2047)+((seq>>20&1)<<11)+((seq>>12&255)<<12)+(seq>>31<<20),20);break;
             }
         }
         // debug

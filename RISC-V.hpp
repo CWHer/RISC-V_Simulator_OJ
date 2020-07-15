@@ -22,7 +22,7 @@ class RISC_V        //mode  0(default):serial   1:parallel
         int mode;
         void run_parallel()
         {
-            bool MEM2WB,isPB,isStall;     //MEM->WB? putback? curstall?
+            bool MEM2WB,isPB,isStall;     //MEM->WB? putback? curisstall?
             mem->init_read();
             IF.init(mem,&reg);
             do {
@@ -33,7 +33,7 @@ class RISC_V        //mode  0(default):serial   1:parallel
                 WB.init(MEM);
                 if (!MEM.isLock()&&MEM.gettype()!=EMPTY) MEM.forwarding(EXE);//MEM->EXE
                 EXE.run();
-                if (!EXE.check(wcnt))    //put back pipeline to last clk
+                if (!EXE.check())    //put back pipeline to last clk
                 {                       //jump&incorrect pred
                     reg.prevpc();
                     EXE.putback(ID);
@@ -48,9 +48,9 @@ class RISC_V        //mode  0(default):serial   1:parallel
                 {
                     if (!isSL(EXE.gettype()))   //skip MEM if without SL
                     {
-                        if (MEM2WB)     //WAW
-                            isStall=1;  
-                        else 
+                        if (MEM2WB)     //structural hazard
+                            isStall=1;  //MEM->WB EXE->WB at same cycle
+                        else            //stall 1 clk
                             WB.init(MEM);  
                         MEM.reset();    
                     }
@@ -83,11 +83,10 @@ class RISC_V        //mode  0(default):serial   1:parallel
                 WB.run(),++clkcnt;
             } while (!WB.isEnd());
         }
-        //debug
-        int clkcnt,wcnt;    //clockcnt wrongcnt
+        int clkcnt;    //clock cycle cnt
     public:
         RISC_V(Memory *_mem,int _mode=0)
-            :clkcnt(0),wcnt(0),mem(_mem),mode(_mode),ID(&prd),WB(_mode) {}
+            :clkcnt(0),mem(_mem),mode(_mode),ID(&prd) {}
         void run()
         {
             if (mode==0)
@@ -99,14 +98,13 @@ class RISC_V        //mode  0(default):serial   1:parallel
         {
             return reg.output();
         }
-        //debug
         int clktimes()
         {
             return clkcnt;
         }
         void prdrate()
         {
-            int rcnt=prd.tot-wcnt;
-            printf("%d/%d %.2lf%\n",rcnt,prd.tot,rcnt*100.0/prd.tot);
+            int num=prd.tot-EXE.tot();
+            printf("%d/%d %.2lf%\n",num,prd.tot,num*100.0/prd.tot);
         }
 };

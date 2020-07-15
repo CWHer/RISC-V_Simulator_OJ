@@ -18,7 +18,7 @@ class InstructionDecode
         bool isend;
         int wait_clk;
     public:
-        InstructionDecode(Predictor *_prd):wait_clk(0),prd(_prd) {}
+        InstructionDecode(Predictor *_prd):isend(0),wait_clk(0),prd(_prd) {}
         void init(InstructionFetch &IF)
         {
             if (isLock()) return;
@@ -37,7 +37,8 @@ class InstructionDecode
         }
         void reset()    //reset to EMPTY
         {
-            opt.init();
+            opt.reset();
+            wait_clk=0;
         }
         void run()
         {

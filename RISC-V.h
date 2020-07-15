@@ -1,6 +1,11 @@
 #ifndef __RISC_V__
 #define __RISC_V__
 
+#include<cstdio>
+#include<iostream>
+#include<cstring>
+#include<iomanip>
+
 enum States{ST,WT,WNT,SNT}; //S:strongly    W:weakly    N:not   T:take
 enum Basictypes{R,I,S,B,U,J};
 enum Instructiontypes
@@ -27,7 +32,7 @@ struct forward
         :type(_type),rd(_rd),
             temp_result(_temp_result),
             temp_resultpc(_temp_resultpc) {}
-    void init()
+    void reset()
     {
         type=EMPTY;
         rd=temp_result=temp_resultpc=0;
@@ -43,6 +48,11 @@ const char *str[]=
     "ADD","SUB","SLL","SLT","SLTU","XOR","SRL","SRA","OR","AND",
     "EMPTY"
 };
+unsigned sext(unsigned x,int n) //sign-extend
+{
+    return (x>>n)&1?x|0xffffffff>>n<<n:x;
+}     
+unsigned setlow0(unsigned x) {return (x|1)^1;}
 int isJump(Instructiontypes type)
 {
     int ret=0;
@@ -75,4 +85,5 @@ int isSL(Instructiontypes type)
     }
     return ret;
 }
+
 #endif

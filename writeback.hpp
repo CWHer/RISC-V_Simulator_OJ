@@ -1,6 +1,7 @@
 #ifndef __WRITEBACK__
 #define __WRITEBACK__
 
+#include"RISC-V.h"
 #include"instruction.hpp"
 #include"memory.hpp"
 #include"register.hpp"
@@ -14,9 +15,8 @@ class WriteBack
         Memory *mem;
         Executor exe;
         bool isend;
-        bool isParallel;
     public:
-        WriteBack(bool _isParallel):isParallel(_isParallel) {}
+        WriteBack():isend(0) {}
         void init(MemoryAccess &MEM)
         {
             reset();
@@ -28,13 +28,12 @@ class WriteBack
         }
         void reset()    //reset to EMPTY
         {
-            Instruction opt;
-            exe.init(opt);
+            exe.reset();
         }
         void run()
         {
             if (isend) return;
-            exe.write_back(reg,isParallel);
+            exe.write_back(reg);
         }
         bool isEnd()
         {

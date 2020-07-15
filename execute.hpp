@@ -18,9 +18,10 @@ class Execute
         Executor exe;
         bool isend;
         int wait_clk;
+        int cnt;
         forward fwd;
     public:
-        Execute():wait_clk(0) {}
+        Execute():isend(0),wait_clk(0),cnt(0) {}
         void init(InstructionDecode &ID)
         {
             if (isLock()) return;
@@ -43,8 +44,9 @@ class Execute
         }
         void reset()    //reset to EMPTY
         {
-            Instruction opt;
-            exe.init(opt);
+            exe.reset();
+            fwd.reset();
+            wait_clk=0;
         }
         void run()
         {
@@ -76,25 +78,25 @@ class Execute
         {
             return exe.temp_resultpc!=0;
         }
-        bool check(int &wcnt)
+        bool check()
         {
             if ((!exe.opt.willJump())^(exe.temp_resultpc==0)) //inconsistent
             {
-                ++wcnt;
+                ++cnt;
                 if (exe.temp_resultpc!=0) return 0;
             }
-            // if (gettype()==JAL||gettype()==JALR) return 1;
-            // if (!isJump(gettype())) return 1;
-            // printf("%d\n",exe.temp_resultpc!=0);    //jump 1 njump 0
             return 1;
         }
         void update(Predictor *prd)     //feedback predictor
         {
             Instructiontypes type=gettype();
-            if (!isJump(type)) return;
-            if (type==JAL||type==JALR) return;
+            if (isJump(type)!=1) return;
             prd->update(exe.gettype(),willJump()?-1:1);
             prd->push(exe.gettype(),willJump());
+        }
+        int tot()
+        {
+            return cnt;
         }
 };
 
