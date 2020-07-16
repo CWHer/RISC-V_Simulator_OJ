@@ -35,7 +35,7 @@ class Register
         }
         void setQi(unsigned pos,Resnode *ptr)
         {
-            Qi[pos]=ptr;
+            if (pos!=0) Qi[pos]=ptr;
         }
         unsigned &getpc() 
         {

@@ -16,15 +16,12 @@ class ReorderBuffer
         Register *reg;
         Predictor *prd;
         unsigned cnt;//incorrect prediction cnt
+        unsigned stopnum;//default:0
         static const int N=10;
         std::deque<Executor> Q;
-        void refresh(unsigned pc)
-        {
-            
-        }
     public:
-        ReorderBuffer(Memory *_mem,Register *_reg,Predictor *_prd)
-            :mem(_mem),reg(_reg),prd(_prd),cnt(0) {}
+        ReorderBuffer(Memory *_mem,Register *_reg,Predictor *_prd,unsigned _num=0)
+            :mem(_mem),reg(_reg),prd(_prd),cnt(0),stopnum(_num) {}
         bool stall()    //JALR & S-type(SW)
         {
             std::deque<Executor>::iterator it;
@@ -67,14 +64,23 @@ class ReorderBuffer
             Executor exe=Q.front();
             if (!exe.isReady) return 0;
 
+            if (exe.opt.num==stopnum) 
+            {
+                std::cout<<"inst num: "<<exe.opt.num<<std::endl;
+                std::cout<<"inst type: "<<str[exe.gettype()]<<std::endl;
+                std::cout<<"inst pc: "<<exe.opt.pc<<std::endl;
+                system("pause"); //why can't it stop???
+                // getchar();
+            }
+
             //debug
-            // if (exe.opt.pc+4==4464)
+            // if (exe.opt.pc==4920)
             // {
-                // puts("1");
+            //     puts("1");
             // }
             // std::cout<<str[exe.gettype()]<<std::endl;
-            // std::cout<<exe.opt.pc+4<<std::endl;
-            //let it consist with the only ans from serial...
+            // std::cout<<exe.opt.pc<<std::endl;
+            // std::cout<<"inst num: "<<exe.opt.num<<std::endl;
 
             Q.pop_front();
             exe.write_back(mem,reg);
@@ -87,14 +93,15 @@ class ReorderBuffer
             {
                 if (isJump(exe.gettype())==1)
                 {
-                    prd->update(exe.gettype(),exe.temp_resultpc!=0?-1:1);
-                    prd->push(exe.gettype(),exe.temp_resultpc!=0);
+                    prd->update(exe.gettype(),exe.temp_resultpc!=exe.opt.pc+4?-1:1);
+                    prd->push(exe.gettype(),exe.temp_resultpc!=exe.opt.pc+4);
                 }
                 if ((Q.empty()&&exe.temp_resultpc!=reg->getpc())
                     ||(!Q.empty()&&exe.temp_resultpc!=Q.front().opt.pc)) 
                 {       //catastrophic condition
                     cnt++;
                     reg->getpc()=exe.temp_resultpc;
+                    Instruction::instcnt=exe.opt.num;   //reset instcnt
                     return 1;
                 }
             }
@@ -103,6 +110,10 @@ class ReorderBuffer
         unsigned tot()
         {
             return cnt;
+        }
+        void setStopNum(unsigned num)
+        {
+            stopnum=num;
         }
 };
 

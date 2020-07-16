@@ -4,6 +4,7 @@ Memory mem;
 RISC_V unit(&mem);    //mode  OoOE
 int main()
 {
+    // unit.setStopNum(300);
     unit.run();
 //    unit.prdrate();
 //    std::cout<<unit.clktimes()<<std::endl;

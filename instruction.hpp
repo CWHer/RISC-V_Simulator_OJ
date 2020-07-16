@@ -13,7 +13,6 @@ class Instruction
     friend class ReservationStation;
     friend class ReorderBuffer;
     private:
-        static unsigned instcnt;    //initial with 0, in this file
         unsigned num;
         unsigned pc;
         unsigned seq;
@@ -22,6 +21,7 @@ class Instruction
         Basictypes basictype;
         Instructiontypes type;
     public:
+        static unsigned instcnt;    //initial with 0, in this file
         Instruction()
         {
             num=pc=0;
@@ -41,7 +41,7 @@ class Instruction
         bool fetch(Memory *mem,Register *reg)
         {
             reset();
-            num=++instcnt;
+            // num=++instcnt;   modify in issue
             pc=reg->getpc();
             seq=mem->load(pc,4);
             return seq==0x0ff00513; 

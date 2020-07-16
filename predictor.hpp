@@ -22,6 +22,7 @@ class Predictor
         }
         void update(Instructiontypes type,int dir)
         {
+            ++tot;
             int k=type-BEQ;
             unsigned num=0;
             for(int i=0;i<N;++i)
@@ -30,7 +31,6 @@ class Predictor
         }
         bool willJump(Instructiontypes type)
         {
-            ++tot;
             int k=type-BEQ;
             unsigned num=0;
             for(int i=0;i<N;++i)
